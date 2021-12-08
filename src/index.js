@@ -10,19 +10,75 @@ app.use(cors());
 const users = [];
 
 function checksExistsUserAccount(request, response, next) {
-  // Complete aqui
+
+  const { username } = request.headers;
+
+  const user = users.find(user => user.username === username)
+
+  if (!user) {
+    return response.status(404).json({ error: "User not found" })
+  }
+
+  request.user = user
+
+  return next();
+
 }
 
 function checksCreateTodosUserAvailability(request, response, next) {
-  // Complete aqui
+  
+  const {user} = request
+
+  if(!user.pro == true){
+    if(user.pro == false && user.todos.length >= 10){
+      return response.status(403).json({ message: "Usuario com perfil gratuito ja atingiu o limite de todos permitidos, exclusa alguns ou adquira o nosso plano Pro" })
+    }
+
+    return next()
+  }
+
+  return next()
+
 }
 
 function checksTodoExists(request, response, next) {
-  // Complete aqui
+  const { username } = request.headers
+  const  id  = request.params.id
+
+  const user = users.find(user => user.username === username)
+
+  if(!user){
+    return response.status(404).json({ message: "Usuario não encontrado" })
+  }
+
+  if(!validate(id)){
+    return response.status(400).json({ message: "UUID não é valido" })
+  }
+
+  const todo = user.todos.find(todo => todo.id === id)
+
+  if(!todo){
+    return response.status(404).json({ message: "Todo não encontrado" })
+  }
+
+  request.user = user
+  request.todo = todo
+
+  return next()
 }
 
 function findUserById(request, response, next) {
-  // Complete aqui
+
+  const user = users.find(user => user.id === request.params.id);
+
+  if(!user){
+    return response.status(404).json({ message: "Usuario não encontrado" })
+  }
+
+  request.user = user
+
+  return next()
+
 }
 
 app.post('/users', (request, response) => {
